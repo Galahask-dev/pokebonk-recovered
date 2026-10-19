@@ -1,2 +1,13 @@
-# pokebonk-recovered
-PokéBonk v0.5.5 browser-local recovery for GitHub Pages; no production backend
+# PokéBonk 浏览器还原版
+
+[开始游戏](https://acshan.github.io/pokebonk-recovered/?lang=zh)
+
+基于 v0.5.5 / mvc5u5vc 公开客户端的可编辑还原版。原始后端未恢复；替代 API 在浏览器运行，存档仅保存在当前浏览器，不连接正式服。
+
+可进行游客开局、角色与地区选择、战斗、替代结算与本地进度保存。账号登录、云同步、正式排行榜、赛季奖励、战队和好友不可用。替代奖励不等于正式服。首次加载需要下载游戏资源。
+
+请勿输入正式服账号或密码。本地开发版本的已有存档不会自动迁移。清除浏览器数据会丢失本站进度。
+
+保留原站作者署名和法律声明；不为原代码和素材新增授权。
+
+部署：main 根目录，GitHub Pages 从分支发布，保留 .nojekyll。更新时由原始还原工作区运行 node tools/build-pages.mjs 再提交导出的文件。
