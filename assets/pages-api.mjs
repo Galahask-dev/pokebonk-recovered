@@ -7,11 +7,11 @@ const storageKey="pokebonk-pages-store-v1";
 const empty = () => ({
   account: {
     id: "00000000-0000-4000-8000-000000000001",
-    name: "本地游客",
+    name: "Invitado local",
     guest: true,
     token: "local-development",
   },
-  profile: rules.createProfile("本地游客"),
+  profile: rules.createProfile("Invitado local"),
   runs: {},
   finished: {},
 });
@@ -22,7 +22,7 @@ const persist=()=>{
   const finished=Object.keys(store.finished);
   for(const id of finished.slice(0,-30)){delete store.finished[id];delete store.runs[id];}
   try { localStorage.setItem(storageKey,JSON.stringify(store)); } catch {
-    throw Object.assign(Error('浏览器存储不可用或已满，请允许站点存储后重试。'),{status:400});
+    throw Object.assign(Error('El almacenamiento del navegador no está disponible o está lleno. Permite el almacenamiento del sitio e inténtalo de nuevo.'),{status:400});
   }
 };
 const fail = (message, status = 400) => {
@@ -51,13 +51,13 @@ export function api(path, method, body = {}, token = "") {
     return store.account;
   }
   if (route === "/auth/me" && method === "GET") {
-    if (token !== store.account.token) fail("本地会话无效", 401);
+    if (token !== store.account.token) fail("Sesión local no válida", 401);
     return store.account;
   }
   if (route === "/auth/logout" && method === "POST") return {};
   if (route.startsWith("/auth/"))
-    fail("本地还原版仅支持游客。注册和登录需要原始后端。", 501);
-  if (token !== store.account.token) fail("仅接受本地开发会话", 401);
+    fail("La versión local solo admite invitados. El registro y el inicio de sesión requieren el backend original.", 501);
+  if (token !== store.account.token) fail("Solo se aceptan sesiones de desarrollo local", 401);
   if (route === "/profile" && method === "GET") return profileResult();
   if (route === "/profile/prefs" && method === "PUT") {
     for (const key of [
@@ -75,7 +75,7 @@ export function api(path, method, body = {}, token = "") {
   }
   if (route === "/profile/starter" && method === "POST") {
     if (![1, 4, 7].includes(body.id) || store.profile.starter)
-      fail("请选择初始伙伴，或已有初始伙伴");
+      fail("Elige un compañero inicial (o ya tienes uno)");
     Object.assign(store.profile, {
       starter: body.id,
       lastSpecies: body.id,
@@ -86,7 +86,7 @@ export function api(path, method, body = {}, token = "") {
     return profileResult();
   }
   if (route === "/runs" && method === "POST") {
-    if (![1, 4, 7].includes(store.profile.starter)) fail("请先选择初始伙伴");
+    if (![1, 4, 7].includes(store.profile.starter)) fail("Primero elige un compañero inicial");
     const prior = Object.values(store.runs).find((run) => run.key === body.key);
     if (prior) return prior;
     const ticket = {
@@ -102,7 +102,7 @@ export function api(path, method, body = {}, token = "") {
   }
   const match = route.match(/^\/runs\/([^/]+)\/(checkpoint|finish)$/);
   if (match && method === "POST") {
-    if (!store.runs[match[1]]) fail("本地对局不存在", 404);
+    if (!store.runs[match[1]]) fail("La partida local no existe", 404);
     if (match[2] === "checkpoint") return { ok: true, recovery: true };
     if (store.finished[match[1]]) return store.finished[match[1]];
     const result = body.result;
@@ -115,7 +115,7 @@ export function api(path, method, body = {}, token = "") {
       !numeric(result.stage) ||
       !numeric(result.bosses)
     )
-      fail("无效对局结果");
+      fail("Resultado de partida no válido");
     const p = store.profile;
     // Development substitute: original server validation/reward policy was not public.
     const progress = result.progress ?? {};
@@ -165,30 +165,30 @@ export function api(path, method, body = {}, token = "") {
     return response;
   }
   if (route === "/lab/buy" && method === "POST") {
-    if (!rules.buyLab(store.profile, body.id)) fail("强化未满足条件");
+    if (!rules.buyLab(store.profile, body.id)) fail("No se cumplen los requisitos de la mejora");
     return profileResult();
   }
   if (route === "/items/buy" && method === "POST") {
-    if (!rules.buyItem(store.profile, body.key)) fail("道具未满足条件");
+    if (!rules.buyItem(store.profile, body.key)) fail("No se cumplen los requisitos del objeto");
     return profileResult();
   }
   if (route === "/items/archive" && method === "POST") {
     if (!rules.archiveItem(store.profile, body.key, body.off, () => true))
-      fail("无法存档此道具");
+      fail("No se puede archivar este objeto");
     return profileResult();
   }
   if (route === "/quests/claim" && method === "POST") {
-    if (!rules.claimQuest(store.profile, body.id)) fail("成就未完成或已领取");
+    if (!rules.claimQuest(store.profile, body.id)) fail("Logro sin completar o ya reclamado");
     return profileResult();
   }
   if (route === "/tasks/claim" && method === "POST") {
     if (!rules.claimTask(store.profile, body.period, body.slot, Date.now()))
-      fail("委托未完成或已领取");
+      fail("Encargo sin completar o ya reclamado");
     return profileResult();
   }
   if (route === "/tasks/reroll" && method === "POST") {
     if (!rules.rerollTask(store.profile, body.period, body.slot, Date.now()))
-      fail("无法刷新委托");
+      fail("No se pueden renovar los encargos");
     return profileResult();
   }
   if (route === "/leaderboard" && method === "GET")
@@ -207,6 +207,6 @@ export function api(path, method, body = {}, token = "") {
     route.startsWith("/players") ||
     route === "/feedback"
   )
-    fail("此功能依赖原始线上服务；本地还原版未实现。", 501);
-  fail(`本地 API 未实现：${method} ${route}`, 501);
+    fail("Esta función depende del servicio en línea original; no está implementada en la versión local.", 501);
+  fail(`API local no implementada: ${method} ${route}`, 501);
 }
